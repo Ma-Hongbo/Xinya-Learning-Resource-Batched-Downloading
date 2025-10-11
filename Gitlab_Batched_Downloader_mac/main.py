@@ -54,7 +54,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("新雅书院学习资料库下载器")
-        self.root.geometry("600x400")
+        self.root.geometry("670x300")
 
         icon_path = "icon.png"
         if os.path.exists(icon_path):
