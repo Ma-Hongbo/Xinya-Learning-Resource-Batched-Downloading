@@ -3,7 +3,6 @@ import json
 import threading
 import tarfile
 from io import BytesIO
-import requests
 
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext
@@ -51,8 +50,6 @@ def download_repo(token, path, output_dir, log_queue):
 def start_download_thread(token, path, output, log_queue):
     thread = threading.Thread(target=download_repo, args=(token, path, output, log_queue), daemon=True)
     thread.start()
-
-# -------------------- 多页面应用 --------------------
 class App:
     def __init__(self, root):
         self.root = root
@@ -74,25 +71,20 @@ class App:
         self.output_var = tk.StringVar()
         self.log_queue = queue.Queue()
 
-        # 顶部菜单栏
         self.top_frame = ttk.Frame(self.root)
         self.top_frame.pack(side="top", fill="x", padx=5, pady=5)
         ttk.Button(self.top_frame, text="主界面", command=lambda: self.show_frame(MainPage)).pack(side="left", padx=5)
         ttk.Button(self.top_frame, text="Token设置", command=lambda: self.show_frame(TokenPage)).pack(side="left", padx=5)
         ttk.Button(self.top_frame, text="联系我们", command=lambda: self.show_frame(ContactPage)).pack(side="left", padx=5)
-
-        # 页面容器
         self.container = ttk.Frame(self.root)
         self.container.pack(fill="both", expand=True, padx=10, pady=(0,10))
 
-        # 创建所有页面
         self.frames = {}
         for F in (MainPage, TokenPage, ContactPage):
             frame = F(parent=self.container, controller=self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # 显示主界面
         self.show_frame(MainPage)
         self.process_log_queue()
 
@@ -135,8 +127,6 @@ class App:
         except queue.Empty:
             pass
         self.root.after(100, self.process_log_queue)
-
-# -------------------- 页面：主界面 --------------------
 class MainPage(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -159,8 +149,6 @@ class MainPage(ttk.Frame):
 
         content_frame.columnconfigure(1, weight=1)
         content_frame.rowconfigure(3, weight=1)
-
-# -------------------- 页面：Token设置 --------------------
 class TokenPage(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -174,7 +162,6 @@ class TokenPage(ttk.Frame):
 
         ttk.Button(frame, text="保存Token", command=lambda: [save_token(controller.token_var.get()), controller.log("✅ Token 已保存！\n")]).pack(pady=10)
 
-# -------------------- 页面：联系我们 --------------------
 class ContactPage(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -189,7 +176,8 @@ class ContactPage(ttk.Frame):
             "欢迎联系我们！\n\n"
             "邮箱: mahb22@mails.tsinghua.edu.cn\n"
             "微信: 可在新雅大群中添加\n\n"
-            "本项目已经在GitHub开源,欢迎访问:\n"
+            "本项目已经在GitHub开源,\n"
+            "欢迎访问:https://github.com/Ma-Hongbo/Xinya-Learning-Resource-Batched-Downloading\n\n"
             "感谢使用！"
         )
         ttk.Label(frame, text=contact_info, justify=tk.LEFT, font=("Arial", 11)).pack(padx=10, pady=10)
