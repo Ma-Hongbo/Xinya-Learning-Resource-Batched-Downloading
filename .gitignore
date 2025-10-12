@@ -1,3 +1,8 @@
 Gitlab_Batched_Downloader_mac/build/
 Gitlab_Batched_Downloader_mac/dist/
 Gitlab_Batched_Downloader_mac/venv/
+
+Gitlab_Batched_Downloader_win/build/
+Gitlab_Batched_Downloader_win/dist/
+Gitlab_Batched_Downloader_win/venv/
+Gitlab_Batched_Downloader_win/main.spec
