@@ -1,55 +1,13 @@
 import os
-import json
-import threading
-import tarfile
-from io import BytesIO
-
 import tkinter as tk
-from tkinter import ttk, filedialog, scrolledtext
+from tkinter import ttk
 import queue
 
-CONFIG_FILE = "token.json"
-GITLAB_API = "https://git.tsinghua.edu.cn/api/v4/projects/38341/repository/archive.tar.gz"
+from pages.mainpage import MainPage
+from pages.tokenpage import TokenPage
+from pages.contactpage import ContactPage
+from utils import load_token
 
-def load_token():
-    if os.path.exists(CONFIG_FILE):
-        try:
-            with open(CONFIG_FILE, "r") as f:
-                return json.load(f).get("token", "")
-        except json.JSONDecodeError:
-            return ""
-    return ""
-
-def save_token(token):
-    with open(CONFIG_FILE, "w") as f:
-        json.dump({"token": token}, f)
-
-def download_repo(token, path, output_dir, log_queue):
-    headers = {"PRIVATE-TOKEN": token}
-    params = {"path": path}
-    log_queue.put("正在下载中，请稍候...\n")
-
-    try:
-        response = requests.get(GITLAB_API, headers=headers, params=params, stream=True)
-        response.raise_for_status()
-
-        log_queue.put("下载成功，正在解压...\n")
-        os.makedirs(output_dir, exist_ok=True)
-
-        with tarfile.open(fileobj=BytesIO(response.content), mode="r:gz") as tar:
-            for member in tar.getmembers():
-                member_path = os.path.join(output_dir, member.name)
-                if not os.path.realpath(member_path).startswith(os.path.realpath(output_dir)):
-                     raise Exception(f"成员路径 '{member.name}' 存在安全风险，已跳过。")
-            tar.extractall(path=output_dir)
-
-        log_queue.put(f"解压完成！文件已保存至：{output_dir}\n")
-    except Exception as e:
-        log_queue.put(f"下载失败：{e}\n")
-
-def start_download_thread(token, path, output, log_queue):
-    thread = threading.Thread(target=download_repo, args=(token, path, output, log_queue), daemon=True)
-    thread.start()
 class App:
     def __init__(self, root):
         self.root = root
@@ -92,28 +50,6 @@ class App:
         frame = self.frames[page_class]
         frame.tkraise()
 
-    def browse_folder(self):
-        folder_selected = filedialog.askdirectory()
-        if folder_selected:
-            self.output_var.set(folder_selected)
-
-    def start_download_action(self):
-        token = self.token_var.get()
-        path = self.path_var.get()
-        output = self.output_var.get()
-
-        if not token:
-            self.log("❌ 请先输入并保存Token!\n")
-            return
-        if not path:
-            self.log("❌ 请输入下载路径(path)!\n")
-            return
-        if not output:
-            self.log("❌ 请选择输出文件夹!\n")
-            return
-        
-        start_download_thread(token, path, output, self.log_queue)
-
     def log(self, message):
         self.frames[MainPage].log_text.config(state='normal')
         self.frames[MainPage].log_text.insert(tk.END, message)
@@ -127,60 +63,7 @@ class App:
         except queue.Empty:
             pass
         self.root.after(100, self.process_log_queue)
-class MainPage(ttk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
 
-        content_frame = ttk.Frame(self)
-        content_frame.pack(fill="both", expand=True)
-
-        ttk.Label(content_frame, text="下载路径:").grid(row=0, column=0, sticky=tk.W, pady=2)
-        ttk.Entry(content_frame, textvariable=controller.path_var, width=50).grid(row=0, column=1, sticky=(tk.W, tk.E), pady=2)
-
-        ttk.Label(content_frame, text="保存路径:").grid(row=1, column=0, sticky=tk.W, pady=2)
-        ttk.Entry(content_frame, textvariable=controller.output_var, width=50).grid(row=1, column=1, sticky=(tk.W, tk.E), pady=2)
-        ttk.Button(content_frame, text="选择...", command=controller.browse_folder).grid(row=1, column=2, padx=(5,0), pady=2)
-
-        ttk.Button(content_frame, text="开始下载", command=controller.start_download_action).grid(row=2, column=0, columnspan=3, pady=10)
-
-        self.log_text = scrolledtext.ScrolledText(content_frame, wrap=tk.WORD, height=10, state='disabled')
-        self.log_text.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(5,0))
-
-        content_frame.columnconfigure(1, weight=1)
-        content_frame.rowconfigure(3, weight=1)
-class TokenPage(ttk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-
-        frame = ttk.Frame(self)
-        frame.pack(fill="both", expand=True, pady=20)
-
-        ttk.Label(frame, text="GitLab Token:", font=("Arial", 12)).pack(pady=10)
-        ttk.Entry(frame, textvariable=controller.token_var, width=50).pack(pady=5)
-
-        ttk.Button(frame, text="保存Token", command=lambda: [save_token(controller.token_var.get()), controller.log("✅ Token 已保存！\n")]).pack(pady=10)
-
-class ContactPage(ttk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-
-        frame = ttk.Frame(self)
-        frame.pack(fill="both", expand=True, pady=20)
-
-        contact_info = (
-            "本项目由马洪博(新雅21),刘炳麟(新雅31)创建并开发\n\n"
-            "如在使用中遇到了问题,或是对此有改进建议,或是想一起对此进行维护\n"
-            "欢迎联系我们！\n\n"
-            "邮箱: mahb22@mails.tsinghua.edu.cn\n"
-            "微信: 可在新雅大群中添加\n\n"
-            "本项目已经在GitHub开源,\n"
-            "欢迎访问:https://github.com/Ma-Hongbo/Xinya-Learning-Resource-Batched-Downloading\n\n"
-            "感谢使用！"
-        )
-        ttk.Label(frame, text=contact_info, justify=tk.LEFT, font=("Arial", 11)).pack(padx=10, pady=10)
 
 if __name__ == "__main__":
     root = tk.Tk()

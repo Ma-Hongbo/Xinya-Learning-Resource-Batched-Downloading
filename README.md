@@ -4,6 +4,9 @@ This repository is a batch downloading program for the Xinya College Learning Re
 
 ## For MacOS
 
+
+### Run
+
 Install Python3.11
 
 Git clone this repo.
@@ -15,5 +18,13 @@ source venv/bin/activate
 pip install py2app requests
 python3 setup.py py2app
 ```
+
+### Debug
+
+```bash
+cd Gitlab_Batched_Downloader_mac
+dist/GitRepoDownloader.app/Contents/MacOS/GitRepoDownloader
+```
+
 
 ## For Windows
