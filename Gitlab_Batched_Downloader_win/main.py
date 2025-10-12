@@ -16,7 +16,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("新雅书院学习资料库下载器")
-        self.root.geometry("670x300")
+        self.root.geometry("1050x600")
         
         if platform.system() == "Windows":
             default_font = ("Microsoft YaHei UI", 10)
