@@ -16,8 +16,6 @@ It supports both **macOS** and **Windows**, allowing users to securely and conve
 
 ### 1. Environment Setup
 
-### 1. Environment Setup
-
 Ensure you are using **MacOS** and have **Anaconda** or **Miniconda** installed.
 
 Create and activate a virtual environment:
